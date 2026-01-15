@@ -6,9 +6,9 @@ HCL DevOps Test Hub brings together test data, test environments, and test runs 
 
 ### Resources Required
 
-* [RedHat OpenShift Container Platform](https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/release_notes/ocp-4-17-release-notes) v4.17 or later (x86_64)
-* [Dynamic Volume Provisioning](https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/storage/dynamic-provisioning) supporting accessModes ReadWriteOnce (RWO) and ReadWriteMany (RWX).
-* [Jaeger Operator](https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/service_mesh/service-mesh-2-x#installing-ossm) (Optional) If tests should contribute trace information and Jaeger based reports are required.
+* [RedHat OpenShift Container Platform](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/release_notes/ocp-4-18-release-notes) v4.18 or later (x86_64)
+* [Dynamic Volume Provisioning](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/storage/dynamic-provisioning) supporting accessModes ReadWriteOnce (RWO) and ReadWriteMany (RWX).
+* [Jaeger Operator](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/service_mesh/service-mesh-2-x#installing-ossm) (Optional) If tests should contribute trace information and Jaeger based reports are required.
 
 
 
@@ -24,12 +24,12 @@ To install the product you will need cluster administrator privileges.
 
 ## Red Hat OpenShift SecurityContextConstraints Requirements
 
-The product is compatible with the `restricted` and `restricted-v2` [SecurityContextConstraint](https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/authentication_and_authorization/managing-pod-security-policies).
+The product is compatible with the `restricted` and `restricted-v2` [SecurityContextConstraint](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/authentication_and_authorization/managing-pod-security-policies).
 
 ### Local Machine
 
-* [oc](https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/cli_tools/openshift-cli-oc)
-* [helm v3.17.4 or later](https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/building_applications/working-with-helm-charts#installing-helm)
+* [oc](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/cli_tools/openshift-cli-oc)
+* [helm v3.18.5 or later](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/building_applications/working-with-helm-charts#installing-helm)
 
 ### Storage
 
@@ -59,7 +59,7 @@ The pod [`fsGroup`](https://kubernetes.io/docs/tasks/configure-pod-container/sec
 
 Fetch chart for install:
 ```bash
-helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.6
+helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.700
 cd hcl-devops
 ```
 

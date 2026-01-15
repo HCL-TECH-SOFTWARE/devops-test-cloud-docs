@@ -23,7 +23,7 @@ To install the product you will need cluster administrator privileges.
 
 Fetch chart for install:
 ```bash
-helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.6
+helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.700
 cd hcl-devops
 ```
 

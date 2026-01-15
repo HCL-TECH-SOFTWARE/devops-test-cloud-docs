@@ -19,12 +19,12 @@ Install [azure cli](https://learn.microsoft.com/en-us/cli/azure/install-azure-cl
 
 Install [kubectl](https://learn.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-install-cli) and place on your PATH.
 
-Install [helm v3.17.4 or later](https://helm.sh/docs/intro/install/) and place on your PATH.
+Install [helm v3.18.5 or later](https://helm.sh/docs/intro/install/) and place on your PATH.
 
 Scripts have been validated using:
 - [Git Bash](https://git-scm.com/downloads) on Windows
 - Azure CLI version 2.71.0 (upgrade using `az upgrade --yes`)
-- Azure Bicep CLI version 0.34.44 (upgrade using `az bicep upgrade`)
+- Azure Bicep CLI version 0.38.33 (upgrade using `az bicep upgrade`)
 
 ```bash
 az login
@@ -92,7 +92,7 @@ kubectl get nodes
 
 Fetch chart for install:
 ```bash
-helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.6
+helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.700
 cd hcl-devops
 ```
 ### Air gap / Local image registry

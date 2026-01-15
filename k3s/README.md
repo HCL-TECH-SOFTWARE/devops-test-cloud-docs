@@ -32,7 +32,7 @@ If this DNS domain is not available the product will use: _ip-address.nip.io_. S
 
 Either
 
-* RedHat Enterprise Linux 8.10 or later
+* RedHat Enterprise Linux 9.4 or later
 * Ubuntu Server LTS 22.04 or later
 
 You should `Use The Entire Disk And Set Up LVM` using the ext4 or xfs filesystem. No SWAP or home partition should be created. If your organization requires application data to be stored in a separate partition, you may do so by creating a mount point at `/var/lib/rancher/k3s/storage/` with at least 128GiB capacity.
@@ -40,7 +40,7 @@ You should `Use The Entire Disk And Set Up LVM` using the ext4 or xfs filesystem
 #### Install
 
 * OpenSSH server
-* [helm v3.17.4 or later](https://helm.sh/docs/intro/install/)
+* [helm v3.18.5 or later (v4 is NOT SUPPORTED)](https://helm.sh/docs/intro/install/)
 
 #### Do not Install
 
@@ -98,7 +98,7 @@ An exception for the directory `/run/k3s/containerd/io.containerd.runtime.v2.tas
 
 Fetch chart for install:
 ```bash
-helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.6
+helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.700
 cd hcl-devops
 ```
 
@@ -121,18 +121,18 @@ sudo apt install -y podman zstd
 Collect all the necessary binaries:
 
 ```sh
-K8S_VERSION=1.33.3
+K8S_VERSION=1.34.2
 K3S_VERSION=k3s1
 
 curl -fo  install.sh \
           https://get.k3s.io
-curl -fO  https://get.helm.sh/helm-v3.17.4-linux-amd64.tar.gz
+curl -fO  https://get.helm.sh/helm-v3.18.5-linux-amd64.tar.gz
 
 ```
 Install helm locally so that the chart can be fetched.
 ```sh
 sudo su
-tar -zxf helm-v3.17.4-linux-amd64.tar.gz --strip=1 --wildcards '*/helm'
+tar -zxf helm-v3.18.5-linux-amd64.tar.gz --strip=1 --wildcards '*/helm'
 chmod 555 helm
 mv helm /usr/local/bin
 
@@ -141,7 +141,7 @@ exit
 ```
 
 ```
-helm pull oci://hclcr.io/ot/hcl-devops --version 11.0.6
+helm pull oci://hclcr.io/ot/hcl-devops --version 11.0.700
 
 curl -fOL https://github.com/k3s-io/k3s/releases/download/v${K8S_VERSION}%2B${K3S_VERSION}/k3s
 curl -fOL https://github.com/k3s-io/k3s/releases/download/v${K8S_VERSION}%2B${K3S_VERSION}/k3s-airgap-images-amd64.tar.zst
@@ -150,7 +150,7 @@ curl -fOL https://github.com/k3s-io/k3s/releases/download/v${K8S_VERSION}%2B${K3
 RHEL_VERSION=$(grep -oP 'PLATFORM_ID="platform:\K[^"]+' /etc/os-release)
 [[ -n "$RHEL_VERSION" ]] && curl -fOL https://github.com/k3s-io/k3s-selinux/releases/download/v1.6.stable.1/k3s-selinux-1.6-1.${RHEL_VERSION}.noarch.rpm
 
-images="$(tar -xf hcl-devops-11.0.6.tgz hcl-devops/lib/airgap/images.txt -O |
+images="$(tar -xf hcl-devops-11.0.700.tgz hcl-devops/lib/airgap/images.txt -O |
   sed -e 's#^#hclcr.io/ot/#; s/@.*//')"
 
 xargs -n1 podman pull <<< "${images}"
@@ -165,8 +165,8 @@ This should result in this collection of files to be moved to the target host:
 
 - checksums
 - devops-airgap-images.tar.zst
-- helm-v3.17.4-linux-amd64.tar.gz
-- hcl-devops-11.0.6.tgz
+- helm-v3.18.5-linux-amd64.tar.gz
+- hcl-devops-11.0.700.tgz
 - install.sh
 - k3s
 - k3s-airgap-images-amd64.tar.zst
@@ -194,7 +194,7 @@ dnf install --disablerepo=* -y k3s-selinux-*.rpm
 mkdir -p /var/lib/rancher/k3s/agent/images
 mv *.tar.zst /var/lib/rancher/k3s/agent/images
 
-tar -zxf helm-v3.17.4-linux-amd64.tar.gz --strip=1 --wildcards '*/helm'
+tar -zxf helm-v3.18.5-linux-amd64.tar.gz --strip=1 --wildcards '*/helm'
 chmod 555 helm
 mv helm /usr/local/bin
 
@@ -205,7 +205,7 @@ exit
 As install user
 
 ```sh
-K8S_VERSION=1.33.3
+K8S_VERSION=1.34.2
 K3S_VERSION=k3s1
 CACHE_K3S_DIR="$HOME/.cache/k3s-${K8S_VERSION}+${K3S_VERSION}"
 mkdir -p "$CACHE_K3S_DIR"
@@ -213,12 +213,13 @@ mv k3s "$CACHE_K3S_DIR/k3s"
 mv install.sh "$CACHE_K3S_DIR/install.sh"
 chmod +x "$CACHE_K3S_DIR/install.sh"
 
-tar -xf hcl-devops-11.0.6.tgz
+tar -xf hcl-devops-11.0.700.tgz
 cd hcl-devops
 chmod +x k3s/*.sh
 
 # Define additional arguments required for air gap installation
 TESTHUB_EXTRA_INSTALL_ARGS="INSTALL_K3S_SKIP_SELINUX_RPM=true SKIP_DNS_TEST=true"
+TESTHUB_EXTRA_HELM_ARGS="-f values-k3s-airgap.yaml"
 
 ```
 
@@ -243,11 +244,14 @@ HCL_LICENSING_ID=
 
 chmod +x k3s/*.sh
 
+Note: The environment variables $TESTHUB_EXTRA_INSTALL_ARGS and $TESTHUB_EXTRA_HELM_ARGS are intended for air-gapped installations and are initialized in that context. For regular installations, it is safe to leave them unset.
+
 sudo \
   HELM_NAME=$HELM_NAME \
   INGRESS_DOMAIN=$INGRESS_DOMAIN \
   $TESTHUB_EXTRA_INSTALL_ARGS \
   k3s/init.sh -n $NAMESPACE \
+  $TESTHUB_EXTRA_HELM_ARGS \
   --set-literal passwordSeed=$PASSWORD_SEED \
   --set signup=true \
   --set hclLicensingURL=$HCL_LICENSING_URL \
