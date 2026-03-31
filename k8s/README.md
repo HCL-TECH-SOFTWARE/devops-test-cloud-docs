@@ -23,7 +23,7 @@ To install the product you will need cluster administrator privileges.
 
 Fetch chart for install:
 ```bash
-helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.700
+helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.800
 cd hcl-devops
 ```
 
@@ -49,6 +49,7 @@ NAMESPACE=devops-system
 HELM_NAME=main
 
 INGRESS_DOMAIN=$INGRESS_IP.nip.io
+# MUST be a wildcard dns name resolving to the svc load balancer IP, and NOT just an IP address.
 PASSWORD_SEED= # secure seed required to generate passwords - unrecoverable so keep it safe
 
 HCL_LICENSING_URL=
@@ -58,6 +59,7 @@ helm upgrade --install $HELM_NAME . -n $NAMESPACE \
   --create-namespace \
   --set global.domain=$INGRESS_DOMAIN \
   -f values-k8s.yaml \
+  -f values-dedicated-nodes.yaml \
   --set global.persistence.rwxStorageClass=rook-ceph-file \
   --set-literal passwordSeed=$PASSWORD_SEED \
   --set signup=true \
@@ -66,9 +68,15 @@ helm upgrade --install $HELM_NAME . -n $NAMESPACE \
 ```
 * When the ingress domain is accessible to untrusted parties, `signup` must be set to `false`.
 * The password seed is used to generate default passwords and should be stored securely. Its required again to restore from a backup.
+* Only use `values-dedicated-nodes.yaml` if you have labeled and tainted specific nodes or pools to run test assets.
 
 * The rwxStorageClass is cloud provider dependent, the value provided is only an example.
 
+
+### Troubleshooting
+If in doubt run `kubectl get pods -A` to see what is not running followed by `kubectl describe pod` for more detail.
+
+If pods are `Pending` and `describe` gives no clues, check you're not waiting on storage: `kubectl get pvc -n $NAMESPACE`
 
 ### Configuration
 
@@ -94,7 +102,6 @@ helm upgrade --install $HELM_NAME . -n $NAMESPACE \
 | `networkPolicy.egress.enable`                  | When `network.policy` is enabled create a rule to narrow egress from the product. | false |
 | `networkPolicy.enabled`                        | Deny other software, installed in the cluster, access to the product. | true |
 | `passwordSeed`                                 | The seed used to generate all passwords. | REQUIRED |
-| `postgresql.migrate.enabled`                   | Enable Postgresql version migration on start when coming from v10.5.3. Migration is disabled to avoid an unnecessary image pull. | false |
 | `router.allowedOrigin`                         | A comma separated list of allowed origins for CORS. For example `*.domain.com,*.test.com,10.10.*.*`  | '' |
 | `results.jaegerAgent`                          | The name of the service/host that execution engines write traces to. | '' |
 | `results.jaegerDashboard`                      | The URL for where traces may be opened in a browser. | '' |
@@ -304,7 +311,6 @@ This methods should also be used when restoring a backup made where different se
 
 * `helm rollback` is not currently supported. Move back to a previous release by restoring a backup taken before the upgrade.
 * `helm upgrade` is only supported for specific versions. See [Upgrade](#upgrade) for details.
-* It is not currently possible to edit test assets. This must be done in DevOps Test Workbench.
 * In each namespace, only one instance of the product can be installed.
 * The replica count configuration enables a maximum of 50 active concurrent users. This configuration can not be changed.
 
