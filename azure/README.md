@@ -19,16 +19,16 @@ Install [azure cli](https://learn.microsoft.com/en-us/cli/azure/install-azure-cl
 
 Install [kubectl](https://learn.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-install-cli) and place on your PATH.
 
-Install [helm v4.0.4 or later](https://helm.sh/docs/intro/install/) and place on your PATH.
+Install [helm v4.1.4 or later](https://helm.sh/docs/intro/install/) and place on your PATH.
 
 Scripts have been validated using:
 - [Git Bash](https://git-scm.com/downloads) on Windows
-- Azure CLI version 2.71.0 (upgrade using `az upgrade --yes`)
-- Azure Bicep CLI version 0.39.26 (upgrade using `az bicep upgrade`)
+- Azure CLI version 2.85.0 (upgrade using `az upgrade --yes`)
+- Azure Bicep CLI version 0.42.1 (upgrade using `az bicep upgrade`)
 
+Login to Azure CLI, selecting the target tenant and subscription when prompted.
 ```bash
 az login
-az account set --subscription OneTest-Products
 ```
 ### Subscription
 
@@ -92,7 +92,7 @@ kubectl get nodes
 
 Fetch chart for install:
 ```bash
-helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.800
+helm pull --untar oci://hclcr.io/ot/hcl-devops --version 11.0.900
 cd hcl-devops
 ```
 ### Air gap / Local image registry
@@ -110,9 +110,9 @@ PULL_ARGUMENTS="-g $RESOURCE_GROUP" \
 
 Install Emissary
 ```bash
-export INGRESS_IP=172.16.0.14
-
 export PLATFORM=azure
+export INGRESS_IP=172.16.0.14
+INGRESS_PROXY_ADDRESSES=$(az aks show --resource-group $RESOURCE_GROUP --name $INSTANCE --query "networkProfile.podCidr" --output tsv)
 
 bash lib/ingress/main.sh
 
@@ -150,6 +150,7 @@ helm upgrade --install $HELM_NAME . -n $NAMESPACE \
   -f values-dedicated-nodes.yaml \
   --set global.persistence.rwxStorageClass=azurefile \
   --set imageRegistry=$IMAGE_REGISTRY \
+  --set ingress.proxy.addresses=$INGRESS_PROXY_ADDRESSES \
   --set-literal passwordSeed=$PASSWORD_SEED \
   --set signup=true \
   --set hclLicensingURL=$HCL_LICENSING_URL \
@@ -163,7 +164,7 @@ helm upgrade --install $HELM_NAME . -n $NAMESPACE \
 
 In environments where _Azure Disk_ is restricted, an external database is necessary as the integrated database requires efficient block storage. An external database is not recommended in typical usage due to operational complexities; namely latency, backup inconsistency risks and version skew during upgrades.
 
-Requires Azure Database for PostgreSQL version 15.X in the same availability zone as the AKS cluster.
+Requires Azure Database for PostgreSQL version 15.X (using PostgreSQL password authentication) in the same availability zone as the AKS cluster.
 
 To disable the integrated database and use an external one, add these helm parameters:
 
@@ -207,6 +208,8 @@ If pods are `Pending` and `describe` gives no clues, check you're not waiting on
 | `imageRegistry`                                | The location of container images to use. See [move-images](lib/airgap/move-images.sh) | hclcr.io/ot |
 | `ingress.cert.create`                          | Create an self-signed certificate matching the ingress domain if none exists in secret `global.hclCertSecretName`. | true |
 | `ingress.cert.selfSigned`                      | If the ingress domain certificate is not signed by a globally trusted CA. | PLATFORM specifc |
+| `ingress.proxy.addresses`                      | Comma-separated list of trusted proxy IP addresses. When set, only requests from these addresses are trusted to provide X-Forwarded-For headers. | '' |
+| `ingress.proxy.count`                          | Number of trusted proxies between the client and the gateway for X-Forwarded-For parsing. Adjust per environment: 1 for ingress only, 2 for external load balancer. | 1 |
 | `keycloak.truststoreFileHostnameVerificationPolicy` | HTTPS hostname cerificate verifcation policy. ANY (hostname is not verified), WILDCARD (allows wildcards in subdomain names) or STRICT (the Common Name (CN) must match the hostname exactly). | WILDCARD |
 | `networkPolicy.egress.cidrs`                   | Network ranges to allow access to. This does not include access to github.com where helm test resources are stored. | [ 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 ] |
 | `networkPolicy.egress.enable`                  | When `network.policy` is enabled create a rule to narrow egress from the product. | false |
@@ -221,7 +224,7 @@ If pods are `Pending` and `describe` gives no clues, check you're not waiting on
 
 ## Upgrade
 
-Upgrading from releases prior to v11.0.3 is not support - for older versions first upgrade to an intermediate release.
+Releases prior to v11.0.8 cannot be upgraded directly; you must first upgrade to an intermediate release.
 
 Before performing your upgrade RabbitMQ flags must be enabled on a running install:
 
@@ -253,7 +256,7 @@ Install [velero v14.0.1 or later](https://velero.io/docs/v1.14/basic-install/) a
 
 
 
-##### [Setup](https://github.com/vmware-tanzu/velero-plugin-for-microsoft-azure)
+##### [Setup](https://github.com/velero-io/velero-plugin-for-microsoft-azure)
 
 Deploy the velero backup template:
 
